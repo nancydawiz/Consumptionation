@@ -1,0 +1,153 @@
+<html>
+<head>
+	<title>Should I Turn It On?</title>
+	<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+	<script type="text/javascript" src="https://cdn.firebase.com/v0/firebase.js"></script>
+	<link rel="stylesheet" href="css/menu.css">
+	<script type='text/javascript' src='scripts/test.js'></script>
+	<script type="text/javascript">
+		var times = []
+		var appData = new Array(61+1).join('0').split('').map(parseFloat);
+		var requestRef = new Firebase('https://intense-fire-7795.firebaseio.com/Request');
+		var off = true;
+		
+		$(document).ready(function(){
+			$('#button').on('click', function(){
+				$(this).toggleClass('on');
+				if (off == true){
+					var p = $('#watts').val();
+					var d = getDateTime();
+					requestRef.push({Date:d, Power:p});
+					if ((appData[i] + p < appData[i-1] * 1.1) || (appData[i-1] == 0 && Math.random() < 0.5)){
+						document.getElementById('txtOutput').value = 'You can turn it on now!';
+						off = false;
+					} else {
+						document.getElementById('txtOutput').value = 'Wait one minute please!';
+						$(this).toggleClass('on');
+						off = true;
+					}
+				}
+				else {
+					document.getElementById('txtOutput').value = '';
+					off = true;
+				}
+			});
+		});
+		
+		requestRef.on('child_added', function (snapshot) {
+			var d = snapshot.val();
+			for (i = 1; i < times.length; i++){
+				if (d.Date.substring(11,16) == times[i]){
+					if (appData[i] < appData[i-1] * 1.1 || (appData[i-1] == 0 && Math.random() < .5)) {
+						appData[i] = appData[i] + parseInt(d.Power);
+					} else {
+						appData[i+1] = appData[i+1] + parseInt(d.Power);
+					}
+				}
+			}
+		});
+	
+		function getTimeArray() {
+			var now = new Date(); 
+			var currentHour    = now.getHours();
+			var currentMinute  = now.getMinutes();
+			var hour;
+			var minute;
+			if (currentHour == 0) {
+				hour = 23;
+			} else {
+				hour = currentHour - 1;
+			}
+			if (currentMinute == 59) {
+				minute = 0;
+			} else {
+				minute = currentMinute + 1; 
+			}
+			for (i = 0; i < 60; i++) {
+				if (hour.toString().length == 1){
+					var hour = '0'+hour;
+				}
+			if(minute.toString().length == 1) {
+					var minute = '0'+minute;
+				}
+				times[i] = hour + ":" + minute;
+				if (minute == 59) {
+					minute = 00;
+					if (hour == 23) {
+						hour = 0;
+					} else {
+						hour ++;
+					}
+				} else {
+					minute++;
+				}
+			}
+		}
+		
+		function getDateTime() {
+			var now     = new Date(); 
+			var year    = now.getFullYear();
+			var month   = now.getMonth()+1; 
+			var day     = now.getDate();
+			var hour    = now.getHours();
+			var minute  = now.getMinutes();
+			var second  = now.getSeconds(); 
+			if(month.toString().length == 1) {
+				var month = '0' + month;
+			}
+			if(day.toString().length == 1) {
+				var day = '0' + day;
+			}   
+			if(hour.toString().length == 1) {
+				var hour = '0' + hour;
+			}
+			if(minute.toString().length == 1) {
+				var minute = '0' + minute;
+			}
+			if(second.toString().length == 1) {
+				var second = '0' + second;
+			}   
+			var dateTime = year+'/'+month+'/'+day+' '+hour+':'+minute+':'+second;   
+			return dateTime;
+		}	
+		
+		$(document).keypress(function (e) {
+			if (e.keyCode == 99) {
+				window.location.href = 'index.html';
+			}
+		  });
+		  
+		setInterval(function() {
+			if (new Date().getSeconds() == 0){
+				var now = new Date();
+				var hour = now.getHours();
+				var minute = now.getMinutes();
+				if (hour.toString().length == 1){
+					var hour = '0'+hour;
+				}
+				if(minute.toString().length == 1) {
+					var minute = '0'+minute;
+				}
+				times.push(hour + ":" + minute);
+				times.shift();
+				appData.push(0);
+				appData.shift();
+			}
+		}, 1000);
+		
+		window.onload = getTimeArray;
+	</script>
+</head>
+<body>
+	<input type='text' class = 'watts' id='watts' placeholder='Wattage (W)'>
+	<input type = "text" class = 'txtOutput' id = "txtOutput" placeholder='Waiting for Request'>
+	<section>
+		<a href="#" id="button">&#xF011;</a>
+		<span></span>
+	</section>
+	
+	
+	
+
+</body>
+</html>
